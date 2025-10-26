@@ -46,3 +46,26 @@ services:
             - mysql_data:/var/lib/mysql
         networks:
             - app-network
+
+    mongo:
+        image: mongo:7.0
+        container_name: datasynchub-mongo
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: user
+            MONGO_INITDB_ROOT_PASSWORD: password
+            MONGO_INITDB_DATABASE: datasynchub
+        ports:
+            - "27017:27017"
+        volumes:
+            - mongo_data:/data/db
+        networks:
+            - app-network
+
+volumes:
+    postgres_data:
+    mysql_data:
+    mongo_data:
+
+networks:
+    app-network:
+         driver: bridg
