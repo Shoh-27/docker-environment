@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: devmonitor_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: devmonitor
+      POSTGRES_USER: devmonitor_user
+      POSTGRES_PASSWORD: devmonitor_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - devmonitor_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devmonitor_user -d devmonitor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
