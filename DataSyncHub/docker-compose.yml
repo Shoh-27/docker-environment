@@ -61,6 +61,50 @@ services:
         networks:
             - app-network
 
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: datasynchub-phpmyadmin
+        environment:
+            PMA_HOST: mysql
+            PMA_USER: user
+            PMA_PASSWORD: password
+            PMA_ARBITRARY: 1
+        ports:
+            - "8080:80"
+        depends_on:
+            - mysql
+        networks:
+            - app-network
+
+    pgadmin:
+        image: dpage/pgadmin4
+        container_name: datasynchub-pgadmin
+        environment:
+            PGADMIN_DEFAULT_EMAIL: admin@admin.com
+            PGADMIN_DEFAULT_PASSWORD: admin
+        ports:
+            - "5050:80"
+        depends_on:
+            - postgres
+        networks:
+            - app-network
+
+    mongoexpress:
+        image: mongo-express
+        container_name: datasynchub-mongoexpress
+        environment:
+            ME_CONFIG_MONGODB_SERVER: mongo
+            ME_CONFIG_MONGODB_ADMINUSERNAME: user
+            ME_CONFIG_MONGODB_ADMINPASSWORD: password
+            ME_CONFIG_BASICAUTH_USERNAME: admin
+            ME_CONFIG_BASICAUTH_PASSWORD: admin
+        ports:
+            - "8081:8081"
+        depends_on:
+            - mongo
+        networks:
+            - app-network
+
 volumes:
     postgres_data:
     mysql_data:
@@ -68,4 +112,4 @@ volumes:
 
 networks:
     app-network:
-         driver: bridg
+        driver: bridge
