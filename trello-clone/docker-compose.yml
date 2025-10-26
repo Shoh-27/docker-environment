@@ -55,3 +55,17 @@ services:
       - db
     networks:
       - trello_network
+  node:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/node/Dockerfile
+    container_name: trello_node
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev"
+    networks:
+      - trello_network
