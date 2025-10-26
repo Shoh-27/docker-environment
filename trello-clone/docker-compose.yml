@@ -41,3 +41,17 @@ services:
       - "5433:5432"
     networks:
       - trello_network
+  # pgAdmin
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: trello_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@trello.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+    networks:
+      - trello_network
