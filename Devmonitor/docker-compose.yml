@@ -1,0 +1,212 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: devmonitor_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: devmonitor
+      POSTGRES_USER: devmonitor_user
+      POSTGRES_PASSWORD: devmonitor_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - devmonitor_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devmonitor_user -d devmonitor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: devmonitor_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - devmonitor_network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    # Laravel Backend
+  backend:
+      build:
+        context: ./backend
+        dockerfile: Dockerfile
+      container_name: devmonitor_backend
+      restart: unless-stopped
+      working_dir: /var/www
+      environment:
+        - APP_ENV=local
+        - APP_DEBUG=true
+        - DB_CONNECTION=pgsql
+        - DB_HOST=postgres
+        - DB_PORT=5432
+        - DB_DATABASE=devmonitor
+        - DB_USERNAME=devmonitor_user
+        - DB_PASSWORD=devmonitor_pass
+        - REDIS_HOST=redis
+        - REDIS_PORT=6379
+        - REVERB_HOST=0.0.0.0
+        - REVERB_PORT=8080
+        - REVERB_SCHEME=http
+      volumes:
+        - ./backend:/var/www
+        - /var/www/vendor
+        - /var/www/node_modules
+      networks:
+        - devmonitor_network
+      depends_on:
+        postgres:
+          condition: service_healthy
+        redis:
+          condition: service_healthy
+
+    # Laravel Reverb WebSocket Server
+  reverb:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: devmonitor_reverb
+    restart: unless-stopped
+    working_dir: /var/www
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    environment:
+      - APP_ENV=local
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/var/www
+      - /var/www/vendor
+    networks:
+      - devmonitor_network
+    depends_on:
+      - redis
+      - backend
+
+    # Laravel Queue Worker
+  queue:
+      build:
+        context: ./backend
+        dockerfile: Dockerfile
+      container_name: devmonitor_queue
+      restart: unless-stopped
+      working_dir: /var/www
+      command: php artisan queue:work --sleep=3 --tries=3
+      environment:
+        - APP_ENV=local
+        - DB_CONNECTION=pgsql
+        - DB_HOST=postgres
+        - DB_PORT=5432
+        - DB_DATABASE=devmonitor
+        - DB_USERNAME=devmonitor_user
+        - DB_PASSWORD=devmonitor_pass
+        - REDIS_HOST=redis
+        - REDIS_PORT=6379
+        - QUEUE_CONNECTION=redis
+      volumes:
+        - ./backend:/var/www
+        - /var/www/vendor
+      networks:
+        - devmonitor_network
+      depends_on:
+        - postgres
+        - redis
+        - backend
+
+    # Laravel Scheduler
+  scheduler:
+      build:
+        context: ./backend
+        dockerfile: Dockerfile
+      container_name: devmonitor_scheduler
+      restart: unless-stopped
+      working_dir: /var/www
+      command: bash -c "while true; do php artisan schedule:run --verbose --no-interaction & sleep 60; done"
+      environment:
+        - APP_ENV=local
+        - DB_CONNECTION=pgsql
+        - DB_HOST=postgres
+        - DB_PORT=5432
+        - DB_DATABASE=devmonitor
+        - DB_USERNAME=devmonitor_user
+        - DB_PASSWORD=devmonitor_pass
+        - REDIS_HOST=redis
+        - REDIS_PORT=6379
+      volumes:
+        - ./backend:/var/www
+        - /var/www/vendor
+      networks:
+        - devmonitor_network
+      depends_on:
+        - postgres
+        - redis
+        - backend
+
+    # Nginx Web Server
+  nginx:
+        image: nginx:alpine
+        container_name: devmonitor_nginx
+        restart: unless-stopped
+        ports:
+          - "80:80"
+          - "443:443"
+        volumes:
+          - ./backend:/var/www
+          - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+          - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+        networks:
+          - devmonitor_network
+        depends_on:
+          - backend
+        healthcheck:
+          test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/api/health" ]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+
+    # React Frontend
+  frontend:
+        build:
+          context: ./frontend
+          dockerfile: Dockerfile
+        container_name: devmonitor_frontend
+        restart: unless-stopped
+        stdin_open: true
+        tty: true
+        environment:
+          - REACT_APP_API_URL=http://localhost/api
+          - REACT_APP_WS_URL=ws://localhost:8080
+          - CHOKIDAR_USEPOLLING=true
+        ports:
+          - "3000:3000"
+        volumes:
+          - ./frontend:/app
+          - /app/node_modules
+        networks:
+          - devmonitor_network
+        depends_on:
+          - nginx
+
+networks:
+  devmonitor_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+      driver: local
