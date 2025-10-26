@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="LaravelPint">
-    <laravel_pint_settings>
-      <LaravelPintConfiguration tool_path="$PROJECT_DIR$/DataSyncHub/vendor/bin/pint" />
-    </laravel_pint_settings>
-  </component>
   <component name="MessDetectorOptionsConfiguration">
     <option name="transferred" value="true" />
   </component>
@@ -244,16 +239,8 @@
       <path value="$PROJECT_DIR$/trello-clone/backend/vendor/dragonmantank/cron-expression" />
     </include_path>
   </component>
-
-  <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />
   <component name="PhpStanOptionsConfiguration">
     <option name="transferred" value="true" />
-  </component>
-  <component name="PhpUnit">
-    <phpunit_settings>
-      <PhpUnitSettings configuration_file_path="$PROJECT_DIR$/trello-clone/backend/phpunit.xml" custom_loader_path="$PROJECT_DIR$/trello-clone/backend/vendor/autoload.php" use_configuration_file="true" />
-      <PhpUnitSettings configuration_file_path="$PROJECT_DIR$/DataSyncHub/phpunit.xml" custom_loader_path="$PROJECT_DIR$/DataSyncHub/vendor/autoload.php" use_configuration_file="true" />
-    </phpunit_settings>
   </component>
   <component name="PsalmOptionsConfiguration">
     <option name="transferred" value="true" />
