@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  # Laravel (Backend)
+  app:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    container_name: trello_app
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      - db
+    networks:
+      - trello_network
