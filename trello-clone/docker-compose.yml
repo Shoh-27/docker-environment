@@ -78,17 +78,18 @@ services:
   # Socket.io (real-time)
   socket:
     build:
-      context: ./socket
+      context: ./docker/socket
       dockerfile: Dockerfile
     container_name: trello_socket
     working_dir: /app
     volumes:
-      - ./socket:/app
+      - ./docker/socket:/app
     ports:
       - "3001:3001"
-    command: ["node", "server.js"]
+    command: [ "node", "server.js" ]
     networks:
       - trello_network
+
 
 volumes:
   trello_pgdata:
