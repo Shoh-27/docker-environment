@@ -53,485 +53,485 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#        with:
-#          fetch-depth: 0
-#
-#      - name: Setup PHP
-#        uses: shivammathur/setup-php@v2
-#        with:
-#          php-version: ${{ matrix.php }}
-#          extensions: pdo, pdo_pgsql, pgsql, mbstring, xml, redis, bcmath, gd, zip
-#          coverage: xdebug
-#          tools: composer:v2
-#
-#      - name: Get Composer cache directory
-#        id: composer-cache
-#        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-#
-#      - name: Cache Composer dependencies
-#        uses: actions/cache@v3
-#        with:
-#          path: ${{ steps.composer-cache.outputs.dir }}
-#          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-#          restore-keys: ${{ runner.os }}-composer-
-#
-#      - name: Copy .env
-#        working-directory: ./backend
-#        run: |
-#          cp .env.example .env
-#          sed -i 's/DB_HOST=postgres/DB_HOST=127.0.0.1/' .env
-#          sed -i 's/REDIS_HOST=redis/REDIS_HOST=127.0.0.1/' .env
-#          sed -i 's/DB_DATABASE=devmonitor/DB_DATABASE=devmonitor_test/' .env
-#
-#      - name: Install Composer dependencies
-#        working-directory: ./backend
-#        run: composer install --prefer-dist --no-progress --no-interaction --no-scripts
-#
-#      - name: Generate application key
-#        working-directory: ./backend
-#        run: php artisan key:generate
-#
-#      - name: Directory permissions
-#        working-directory: ./backend
-#        run: |
-#          chmod -R 777 storage bootstrap/cache
-#
-#      - name: Run database migrations
-#        working-directory: ./backend
-#        run: php artisan migrate --force
-#        env:
-#          DB_CONNECTION: pgsql
-#          DB_HOST: 127.0.0.1
-#          DB_PORT: 5432
-#          DB_DATABASE: devmonitor_test
-#          DB_USERNAME: devmonitor_user
-#          DB_PASSWORD: devmonitor_pass
-#
-#      - name: Seed database
-#        working-directory: ./backend
-#        run: php artisan db:seed --force
-#        env:
-#          DB_CONNECTION: pgsql
-#          DB_HOST: 127.0.0.1
-#          DB_PORT: 5432
-#          DB_DATABASE: devmonitor_test
-#          DB_USERNAME: devmonitor_user
-#          DB_PASSWORD: devmonitor_pass
-#
-#      - name: Run PHPUnit Tests
-#        working-directory: ./backend
-#        run: php artisan test --coverage --min=70
-#        env:
-#          DB_CONNECTION: pgsql
-#          DB_HOST: 127.0.0.1
-#          DB_PORT: 5432
-#          DB_DATABASE: devmonitor_test
-#          DB_USERNAME: devmonitor_user
-#          DB_PASSWORD: devmonitor_pass
-#          REDIS_HOST: 127.0.0.1
-#
-#      - name: Run Pest Tests
-#        working-directory: ./backend
-#        run: ./vendor/bin/pest --coverage --min=70
-#        env:
-#          DB_CONNECTION: pgsql
-#          DB_HOST: 127.0.0.1
-#          DB_PORT: 5432
-#          DB_DATABASE: devmonitor_test
-#          DB_USERNAME: devmonitor_user
-#          DB_PASSWORD: devmonitor_pass
-#          REDIS_HOST: 127.0.0.1
-#
-#      - name: Upload coverage reports to Codecov
-#        uses: codecov/codecov-action@v3
-#        with:
-#          files: ./backend/coverage.xml
-#          flags: backend
-#          name: backend-coverage
-#        continue-on-error: true
-#
-#  # ============================================
-#  # Backend Code Quality
-#  # ============================================
-#  backend-quality:
-#    name: Backend Code Quality
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#
-#      - name: Setup PHP
-#        uses: shivammathur/setup-php@v2
-#        with:
-#          php-version: ${{ env.PHP_VERSION }}
-#          extensions: pdo, pgsql, mbstring, xml, redis
-#          tools: composer:v2, phpstan, php-cs-fixer
-#
-#      - name: Install Composer dependencies
-#        working-directory: ./backend
-#        run: composer install --prefer-dist --no-progress --no-interaction
-#
-#      - name: Run PHP CS Fixer (Code Style)
-#        working-directory: ./backend
-#        run: |
-#          composer require --dev friendsofphp/php-cs-fixer
-#          ./vendor/bin/php-cs-fixer fix --dry-run --diff --verbose
-#        continue-on-error: true
-#
-#      - name: Run PHPStan (Static Analysis)
-#        working-directory: ./backend
-#        run: |
-#          composer require --dev phpstan/phpstan
-#          ./vendor/bin/phpstan analyse --memory-limit=2G --error-format=github
-#        continue-on-error: true
-#
-#      - name: Check code formatting
-#        working-directory: ./backend
-#        run: |
-#          composer require --dev squizlabs/php_codesniffer
-#          ./vendor/bin/phpcs --standard=PSR12 app/
-#        continue-on-error: true
-#
-#  # ============================================
-#  # Frontend Testing & Build
-#  # ============================================
-#  frontend-tests:
-#    name: Frontend Tests (Node ${{ matrix.node }})
-#    runs-on: ubuntu-latest
-#
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        node: ['20']
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#
-#      - name: Setup Node.js
-#        uses: actions/setup-node@v4
-#        with:
-#          node-version: ${{ matrix.node }}
-#          cache: 'npm'
-#          cache-dependency-path: ./frontend/package-lock.json
-#
-#      - name: Cache node modules
-#        uses: actions/cache@v3
-#        with:
-#          path: ./frontend/node_modules
-#          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-#          restore-keys: |
-#            ${{ runner.os }}-node-
-#
-#      - name: Install dependencies
-#        working-directory: ./frontend
-#        run: npm ci --prefer-offline --no-audit
-#
-#      - name: Run ESLint
-#        working-directory: ./frontend
-#        run: npm run lint
-#        continue-on-error: true
-#
-#      - name: Run Prettier check
-#        working-directory: ./frontend
-#        run: npx prettier --check "src/**/*.{js,jsx,ts,tsx,json,css,scss,md}"
-#        continue-on-error: true
-#
-#      - name: Run tests
-#        working-directory: ./frontend
-#        run: npm test -- --coverage --watchAll=false --passWithNoTests
-#        env:
-#          CI: true
-#        continue-on-error: true
-#
-#      - name: Build application
-#        working-directory: ./frontend
-#        run: npm run build
-#        env:
-#          CI: false
-#          REACT_APP_API_URL: http://localhost/api
-#          REACT_APP_WS_URL: ws://localhost:8080
-#
-#      - name: Check bundle size
-#        working-directory: ./frontend
-#        run: |
-#          if [ -d "build" ]; then
-#            du -sh build/
-#            du -sh build/static/js/*.js | sort -h
-#          fi
-#
-#      - name: Upload build artifacts
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: frontend-build-${{ matrix.node }}
-#          path: frontend/build
-#          retention-days: 7
-#
-#      - name: Upload coverage to Codecov
-#        uses: codecov/codecov-action@v3
-#        with:
-#          files: ./frontend/coverage/lcov.info
-#          flags: frontend
-#          name: frontend-coverage
-#        continue-on-error: true
-#
-#  # ============================================
-#  # Docker Build Test
-#  # ============================================
-#  docker-build:
-#    name: Docker Build Test
-#    runs-on: ubuntu-latest
-#    needs: [backend-tests, frontend-tests]
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#
-#      - name: Set up Docker Buildx
-#        uses: docker/setup-buildx-action@v3
-#
-#      - name: Cache Docker layers
-#        uses: actions/cache@v3
-#        with:
-#          path: /tmp/.buildx-cache
-#          key: ${{ runner.os }}-buildx-${{ github.sha }}
-#          restore-keys: |
-#            ${{ runner.os }}-buildx-
-#
-#      - name: Build backend Docker image
-#        uses: docker/build-push-action@v5
-#        with:
-#          context: ./backend
-#          file: ./backend/Dockerfile
-#          push: false
-#          tags: devmonitor-backend:test
-#          cache-from: type=local,src=/tmp/.buildx-cache
-#          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
-#          build-args: |
-#            BUILD_DATE=${{ github.event.head_commit.timestamp }}
-#            VCS_REF=${{ github.sha }}
-#
-#      - name: Build frontend Docker image
-#        uses: docker/build-push-action@v5
-#        with:
-#          context: ./frontend
-#          file: ./frontend/Dockerfile
-#          push: false
-#          tags: devmonitor-frontend:test
-#          cache-from: type=local,src=/tmp/.buildx-cache
-#          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
-#
-#      - name: Move cache
-#        run: |
-#          rm -rf /tmp/.buildx-cache
-#          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-#
-#      - name: Test docker-compose configuration
-#        run: docker-compose config
-#
-#      - name: Start Docker Compose stack
-#        run: |
-#          docker-compose up -d
-#          sleep 30
-#
-#      - name: Check container health
-#        run: |
-#          docker-compose ps
-#          docker-compose logs --tail=50
-#
-#      - name: Test backend API health
-#        run: |
-#          timeout 60 bash -c 'until curl -f http://localhost/api/health; do sleep 2; done'
-#
-#      - name: Cleanup
-#        if: always()
-#        run: docker-compose down -v
-#
-#  # ============================================
-#  # Security Scanning
-#  # ============================================
-#  security-scan:
-#    name: Security Vulnerability Scan
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#
-#      - name: Run Trivy vulnerability scanner (Filesystem)
-#        uses: aquasecurity/trivy-action@master
-#        with:
-#          scan-type: 'fs'
-#          scan-ref: '.'
-#          format: 'sarif'
-#          output: 'trivy-results.sarif'
-#          severity: 'CRITICAL,HIGH'
-#          exit-code: '0'
-#
-#      - name: Upload Trivy results to GitHub Security
-#        uses: github/codeql-action/upload-sarif@v2
-#        if: always()
-#        with:
-#          sarif_file: 'trivy-results.sarif'
-#
-#      - name: Run Trivy vulnerability scanner (Backend Docker)
-#        uses: aquasecurity/trivy-action@master
-#        with:
-#          scan-type: 'config'
-#          scan-ref: './backend/Dockerfile'
-#          format: 'table'
-#          exit-code: '0'
-#
-#      - name: Backend security audit (Composer)
-#        working-directory: ./backend
-#        run: |
-#          composer audit
-#        continue-on-error: true
-#
-#      - name: Frontend security audit (npm)
-#        working-directory: ./frontend
-#        run: |
-#          npm audit --audit-level=high
-#        continue-on-error: true
-#
-#      - name: Check for secrets
-#        uses: trufflesecurity/trufflehog@main
-#        with:
-#          path: ./
-#          base: ${{ github.event.repository.default_branch }}
-#          head: HEAD
-#        continue-on-error: true
-#
-#  # ============================================
-#  # Dependency Review
-#  # ============================================
-#  dependency-review:
-#    name: Dependency Review
-#    runs-on: ubuntu-latest
-#    if: github.event_name == 'pull_request'
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#
-#      - name: Dependency Review
-#        uses: actions/dependency-review-action@v3
-#        with:
-#          fail-on-severity: high
-#
-#  # ============================================
-#  # Code Quality Report
-#  # ============================================
-#  quality-report:
-#    name: Generate Quality Report
-#    runs-on: ubuntu-latest
-#    needs: [backend-tests, backend-quality, frontend-tests, security-scan]
-#    if: always()
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#
-#      - name: Generate report
-#        run: |
-#          echo "## DevMonitor CI/CD Quality Report" > report.md
-#          echo "" >> report.md
-#          echo "**Branch:** ${{ github.ref_name }}" >> report.md
-#          echo "**Commit:** ${{ github.sha }}" >> report.md
-#          echo "**Author:** ${{ github.actor }}" >> report.md
-#          echo "" >> report.md
-#          echo "### Test Results" >> report.md
-#          echo "- Backend Tests: ${{ needs.backend-tests.result }}" >> report.md
-#          echo "- Frontend Tests: ${{ needs.frontend-tests.result }}" >> report.md
-#          echo "- Code Quality: ${{ needs.backend-quality.result }}" >> report.md
-#          echo "- Security Scan: ${{ needs.security-scan.result }}" >> report.md
-#
-#      - name: Comment PR
-#        if: github.event_name == 'pull_request'
-#        uses: actions/github-script@v7
-#        with:
-#          script: |
-#            const fs = require('fs');
-#            const report = fs.readFileSync('report.md', 'utf8');
-#            github.rest.issues.createComment({
-#              issue_number: context.issue.number,
-#              owner: context.repo.owner,
-#              repo: context.repo.repo,
-#              body: report
-#            });
-#
-#  # ============================================
-#  # Deployment Simulation (for develop branch)
-#  # ============================================
-#  deploy-simulation:
-#    name: Deployment Simulation
-#    runs-on: ubuntu-latest
-#    needs: [backend-tests, frontend-tests, docker-build, security-scan]
-#    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#
-#      - name: Setup deployment environment
-#        run: |
-#          echo "Simulating deployment to ${{ github.ref_name }} environment"
-#
-#      - name: Run pre-deployment checks
-#        run: |
-#          echo "✓ All tests passed"
-#          echo "✓ Code quality checks passed"
-#          echo "✓ Security scan completed"
-#          echo "✓ Docker images built successfully"
-#
-#      - name: Deployment summary
-#        run: |
-#          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
-#          echo "" >> $GITHUB_STEP_SUMMARY
-#          echo "**Environment:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-#          echo "**Status:** ✅ Ready for deployment" >> $GITHUB_STEP_SUMMARY
-#          echo "" >> $GITHUB_STEP_SUMMARY
-#          echo "### Deployment Steps (Manual)" >> $GITHUB_STEP_SUMMARY
-#          echo "1. Pull latest changes" >> $GITHUB_STEP_SUMMARY
-#          echo "2. Run \`make production-build\`" >> $GITHUB_STEP_SUMMARY
-#          echo "3. Run \`make migrate\`" >> $GITHUB_STEP_SUMMARY
-#          echo "4. Restart services" >> $GITHUB_STEP_SUMMARY
-#
-#  # ============================================
-#  # Notification
-#  # ============================================
-#  notify:
-#    name: Send Notifications
-#    runs-on: ubuntu-latest
-#    needs: [backend-tests, frontend-tests, docker-build, security-scan]
-#    if: always() && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
-#
-#    steps:
-#      - name: Check workflow status
-#        id: status
-#        run: |
-#          if [[ "${{ needs.backend-tests.result }}" == "success" && \
-#                "${{ needs.frontend-tests.result }}" == "success" && \
-#                "${{ needs.docker-build.result }}" == "success" && \
-#                "${{ needs.security-scan.result }}" == "success" ]]; then
-#            echo "status=success" >> $GITHUB_OUTPUT
-#          else
-#            echo "status=failure" >> $GITHUB_OUTPUT
-#          fi
-#
-#      - name: Workflow summary
-#        run: |
-#          echo "## Pipeline Results 🚀" >> $GITHUB_STEP_SUMMARY
-#          echo "" >> $GITHUB_STEP_SUMMARY
-#          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
-#          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-#          echo "| Backend Tests | ${{ needs.backend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
-#          echo "| Frontend Tests | ${{ needs.frontend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
-#          echo "| Docker Build | ${{ needs.docker-build.result }} |" >> $GITHUB_STEP_SUMMARY
-#          echo "| Security Scan | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
-#          echo "" >> $GITHUB_STEP_SUMMARY
-#          echo "**Overall Status:** ${{ steps.status.outputs.status }}" >> $GITHUB_STEP_SUMMARY
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo, pdo_pgsql, pgsql, mbstring, xml, redis, bcmath, gd, zip
+          coverage: xdebug
+          tools: composer:v2
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Copy .env
+        working-directory: ./backend
+        run: |
+          cp .env.example .env
+          sed -i 's/DB_HOST=postgres/DB_HOST=127.0.0.1/' .env
+          sed -i 's/REDIS_HOST=redis/REDIS_HOST=127.0.0.1/' .env
+          sed -i 's/DB_DATABASE=devmonitor/DB_DATABASE=devmonitor_test/' .env
+
+      - name: Install Composer dependencies
+        working-directory: ./backend
+        run: composer install --prefer-dist --no-progress --no-interaction --no-scripts
+
+      - name: Generate application key
+        working-directory: ./backend
+        run: php artisan key:generate
+
+      - name: Directory permissions
+        working-directory: ./backend
+        run: |
+          chmod -R 777 storage bootstrap/cache
+
+      - name: Run database migrations
+        working-directory: ./backend
+        run: php artisan migrate --force
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: devmonitor_test
+          DB_USERNAME: devmonitor_user
+          DB_PASSWORD: devmonitor_pass
+
+      - name: Seed database
+        working-directory: ./backend
+        run: php artisan db:seed --force
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: devmonitor_test
+          DB_USERNAME: devmonitor_user
+          DB_PASSWORD: devmonitor_pass
+
+      - name: Run PHPUnit Tests
+        working-directory: ./backend
+        run: php artisan test --coverage --min=70
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: devmonitor_test
+          DB_USERNAME: devmonitor_user
+          DB_PASSWORD: devmonitor_pass
+          REDIS_HOST: 127.0.0.1
+
+      - name: Run Pest Tests
+        working-directory: ./backend
+        run: ./vendor/bin/pest --coverage --min=70
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: devmonitor_test
+          DB_USERNAME: devmonitor_user
+          DB_PASSWORD: devmonitor_pass
+          REDIS_HOST: 127.0.0.1
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./backend/coverage.xml
+          flags: backend
+          name: backend-coverage
+        continue-on-error: true
+
+  # ============================================
+  # Backend Code Quality
+  # ============================================
+  backend-quality:
+    name: Backend Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pdo, pgsql, mbstring, xml, redis
+          tools: composer:v2, phpstan, php-cs-fixer
+
+      - name: Install Composer dependencies
+        working-directory: ./backend
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Run PHP CS Fixer (Code Style)
+        working-directory: ./backend
+        run: |
+          composer require --dev friendsofphp/php-cs-fixer
+          ./vendor/bin/php-cs-fixer fix --dry-run --diff --verbose
+        continue-on-error: true
+
+      - name: Run PHPStan (Static Analysis)
+        working-directory: ./backend
+        run: |
+          composer require --dev phpstan/phpstan
+          ./vendor/bin/phpstan analyse --memory-limit=2G --error-format=github
+        continue-on-error: true
+
+      - name: Check code formatting
+        working-directory: ./backend
+        run: |
+          composer require --dev squizlabs/php_codesniffer
+          ./vendor/bin/phpcs --standard=PSR12 app/
+        continue-on-error: true
+
+  # ============================================
+  # Frontend Testing & Build
+  # ============================================
+  frontend-tests:
+    name: Frontend Tests (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ./frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Run ESLint
+        working-directory: ./frontend
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Run Prettier check
+        working-directory: ./frontend
+        run: npx prettier --check "src/**/*.{js,jsx,ts,tsx,json,css,scss,md}"
+        continue-on-error: true
+
+      - name: Run tests
+        working-directory: ./frontend
+        run: npm test -- --coverage --watchAll=false --passWithNoTests
+        env:
+          CI: true
+        continue-on-error: true
+
+      - name: Build application
+        working-directory: ./frontend
+        run: npm run build
+        env:
+          CI: false
+          REACT_APP_API_URL: http://localhost/api
+          REACT_APP_WS_URL: ws://localhost:8080
+
+      - name: Check bundle size
+        working-directory: ./frontend
+        run: |
+          if [ -d "build" ]; then
+            du -sh build/
+            du -sh build/static/js/*.js | sort -h
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-build-${{ matrix.node }}
+          path: frontend/build
+          retention-days: 7
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+        continue-on-error: true
+
+  # ============================================
+  # Docker Build Test
+  # ============================================
+  docker-build:
+    name: Docker Build Test
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Build backend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: false
+          tags: devmonitor-backend:test
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+
+      - name: Build frontend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: false
+          tags: devmonitor-frontend:test
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Test docker-compose configuration
+        run: docker-compose config
+
+      - name: Start Docker Compose stack
+        run: |
+          docker-compose up -d
+          sleep 30
+
+      - name: Check container health
+        run: |
+          docker-compose ps
+          docker-compose logs --tail=50
+
+      - name: Test backend API health
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost/api/health; do sleep 2; done'
+
+      - name: Cleanup
+        if: always()
+        run: docker-compose down -v
+
+  # ============================================
+  # Security Scanning
+  # ============================================
+  security-scan:
+    name: Security Vulnerability Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner (Filesystem)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run Trivy vulnerability scanner (Backend Docker)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: './backend/Dockerfile'
+          format: 'table'
+          exit-code: '0'
+
+      - name: Backend security audit (Composer)
+        working-directory: ./backend
+        run: |
+          composer audit
+        continue-on-error: true
+
+      - name: Frontend security audit (npm)
+        working-directory: ./frontend
+        run: |
+          npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+        continue-on-error: true
+
+  # ============================================
+  # Dependency Review
+  # ============================================
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3
+        with:
+          fail-on-severity: high
+
+  # ============================================
+  # Code Quality Report
+  # ============================================
+  quality-report:
+    name: Generate Quality Report
+    runs-on: ubuntu-latest
+    needs: [backend-tests, backend-quality, frontend-tests, security-scan]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate report
+        run: |
+          echo "## DevMonitor CI/CD Quality Report" > report.md
+          echo "" >> report.md
+          echo "**Branch:** ${{ github.ref_name }}" >> report.md
+          echo "**Commit:** ${{ github.sha }}" >> report.md
+          echo "**Author:** ${{ github.actor }}" >> report.md
+          echo "" >> report.md
+          echo "### Test Results" >> report.md
+          echo "- Backend Tests: ${{ needs.backend-tests.result }}" >> report.md
+          echo "- Frontend Tests: ${{ needs.frontend-tests.result }}" >> report.md
+          echo "- Code Quality: ${{ needs.backend-quality.result }}" >> report.md
+          echo "- Security Scan: ${{ needs.security-scan.result }}" >> report.md
+
+      - name: Comment PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+
+  # ============================================
+  # Deployment Simulation (for develop branch)
+  # ============================================
+  deploy-simulation:
+    name: Deployment Simulation
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests, docker-build, security-scan]
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup deployment environment
+        run: |
+          echo "Simulating deployment to ${{ github.ref_name }} environment"
+
+      - name: Run pre-deployment checks
+        run: |
+          echo "✓ All tests passed"
+          echo "✓ Code quality checks passed"
+          echo "✓ Security scan completed"
+          echo "✓ Docker images built successfully"
+
+      - name: Deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ✅ Ready for deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Steps (Manual)" >> $GITHUB_STEP_SUMMARY
+          echo "1. Pull latest changes" >> $GITHUB_STEP_SUMMARY
+          echo "2. Run \`make production-build\`" >> $GITHUB_STEP_SUMMARY
+          echo "3. Run \`make migrate\`" >> $GITHUB_STEP_SUMMARY
+          echo "4. Restart services" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # Notification
+  # ============================================
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests, docker-build, security-scan]
+    if: always() && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
+
+    steps:
+      - name: Check workflow status
+        id: status
+        run: |
+          if [[ "${{ needs.backend-tests.result }}" == "success" && \
+                "${{ needs.frontend-tests.result }}" == "success" && \
+                "${{ needs.docker-build.result }}" == "success" && \
+                "${{ needs.security-scan.result }}" == "success" ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Workflow summary
+        run: |
+          echo "## Pipeline Results 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend Tests | ${{ needs.backend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend Tests | ${{ needs.frontend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Build | ${{ needs.docker-build.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Scan | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Overall Status:** ${{ steps.status.outputs.status }}" >> $GITHUB_STEP_SUMMARY
