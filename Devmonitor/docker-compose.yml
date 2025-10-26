@@ -38,3 +38,37 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+    # Laravel Backend
+  backend:
+      build:
+        context: ./backend
+        dockerfile: Dockerfile
+      container_name: devmonitor_backend
+      restart: unless-stopped
+      working_dir: /var/www
+      environment:
+        - APP_ENV=local
+        - APP_DEBUG=true
+        - DB_CONNECTION=pgsql
+        - DB_HOST=postgres
+        - DB_PORT=5432
+        - DB_DATABASE=devmonitor
+        - DB_USERNAME=devmonitor_user
+        - DB_PASSWORD=devmonitor_pass
+        - REDIS_HOST=redis
+        - REDIS_PORT=6379
+        - REVERB_HOST=0.0.0.0
+        - REVERB_PORT=8080
+        - REVERB_SCHEME=http
+      volumes:
+        - ./backend:/var/www
+        - /var/www/vendor
+        - /var/www/node_modules
+      networks:
+        - devmonitor_network
+      depends_on:
+        postgres:
+          condition: service_healthy
+        redis:
+          condition: service_healthy
