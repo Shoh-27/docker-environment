@@ -72,3 +72,27 @@ services:
           condition: service_healthy
         redis:
           condition: service_healthy
+
+    # Laravel Reverb WebSocket Server
+  reverb:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: devmonitor_reverb
+    restart: unless-stopped
+    working_dir: /var/www
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    environment:
+      - APP_ENV=local
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/var/www
+      - /var/www/vendor
+    networks:
+      - devmonitor_network
+    depends_on:
+      - redis
+      - backend
