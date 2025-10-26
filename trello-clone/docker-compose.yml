@@ -13,6 +13,7 @@ services:
       - db
     networks:
       - trello_network
+
   # Nginx server
   nginx:
     image: nginx:latest
@@ -26,7 +27,8 @@ services:
       - app
     networks:
       - trello_network
-    # PostgreSQL
+
+  # PostgreSQL
   db:
     image: postgres:15
     container_name: trello_db
@@ -41,6 +43,7 @@ services:
       - "5433:5432"
     networks:
       - trello_network
+
   # pgAdmin
   pgadmin:
     image: dpage/pgadmin4
@@ -55,6 +58,8 @@ services:
       - db
     networks:
       - trello_network
+
+  # React (Frontend)
   node:
     build:
       context: ./frontend
@@ -69,3 +74,25 @@ services:
     command: sh -c "npm install && npm run dev"
     networks:
       - trello_network
+
+  # Socket.io (real-time)
+  socket:
+    build:
+      context: ./socket
+      dockerfile: Dockerfile
+    container_name: trello_socket
+    working_dir: /app
+    volumes:
+      - ./socket:/app
+    ports:
+      - "3001:3001"
+    command: ["node", "server.js"]
+    networks:
+      - trello_network
+
+volumes:
+  trello_pgdata:
+
+networks:
+  trello_network:
+    driver: bridge
