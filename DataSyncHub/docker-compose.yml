@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: datasynchub-app
+        ports:
+            - "8000:8000"
+        volumes:
+            - .:/var/www/html
+        depends_on:
+            - postgres
+            - mysql
+            - mongo
+        command: php artisan serve --host=0.0.0.0 --port=8000
+        networks:
+            - app-network
