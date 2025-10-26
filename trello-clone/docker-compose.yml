@@ -26,3 +26,18 @@ services:
       - app
     networks:
       - trello_network
+    # PostgreSQL
+  db:
+    image: postgres:15
+    container_name: trello_db
+    restart: always
+    environment:
+      POSTGRES_DB: trello_db
+      POSTGRES_USER: trello_user
+      POSTGRES_PASSWORD: trello_pass
+    volumes:
+      - trello_pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - trello_network
