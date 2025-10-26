@@ -96,3 +96,62 @@ services:
     depends_on:
       - redis
       - backend
+
+    # Laravel Queue Worker
+  queue:
+      build:
+        context: ./backend
+        dockerfile: Dockerfile
+      container_name: devmonitor_queue
+      restart: unless-stopped
+      working_dir: /var/www
+      command: php artisan queue:work --sleep=3 --tries=3
+      environment:
+        - APP_ENV=local
+        - DB_CONNECTION=pgsql
+        - DB_HOST=postgres
+        - DB_PORT=5432
+        - DB_DATABASE=devmonitor
+        - DB_USERNAME=devmonitor_user
+        - DB_PASSWORD=devmonitor_pass
+        - REDIS_HOST=redis
+        - REDIS_PORT=6379
+        - QUEUE_CONNECTION=redis
+      volumes:
+        - ./backend:/var/www
+        - /var/www/vendor
+      networks:
+        - devmonitor_network
+      depends_on:
+        - postgres
+        - redis
+        - backend
+
+    # Laravel Scheduler
+  scheduler:
+      build:
+        context: ./backend
+        dockerfile: Dockerfile
+      container_name: devmonitor_scheduler
+      restart: unless-stopped
+      working_dir: /var/www
+      command: bash -c "while true; do php artisan schedule:run --verbose --no-interaction & sleep 60; done"
+      environment:
+        - APP_ENV=local
+        - DB_CONNECTION=pgsql
+        - DB_HOST=postgres
+        - DB_PORT=5432
+        - DB_DATABASE=devmonitor
+        - DB_USERNAME=devmonitor_user
+        - DB_PASSWORD=devmonitor_pass
+        - REDIS_HOST=redis
+        - REDIS_PORT=6379
+      volumes:
+        - ./backend:/var/www
+        - /var/www/vendor
+      networks:
+        - devmonitor_network
+      depends_on:
+        - postgres
+        - redis
+        - backend
