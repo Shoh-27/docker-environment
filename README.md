@@ -48,25 +48,5 @@ docker ps
 docker compose down
 ```
 
-##  📁 Tuzilma
-
-docker-environment/
-│
-├── trello-clone/
-│   ├── docker-compose.yml
-│   ├── backend/ (Laravel)
-│   └── frontend/ (React)
-│
-├── datasycnhub/│   
-│   ├── docker-compose.yml
-│   ├── backend/ (Laravel)
-│   └── frontend/ (React)
-│
-├── devmonitoring/│
-│   ├── docker-compose.yml
-│   ├── backend/ (Laravel)
-│   └── frontend/ (React)
-│
-└── README.md
 
 
